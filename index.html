@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HACKER EXTREME FINAL</title>
+
+<style>
+body{
+margin:0;
+background:black;
+color:#00ff00;
+font-family:monospace;
+overflow:hidden;
+}
+
+#flash{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:white;
+opacity:0;
+pointer-events:none;
+}
+
+#login{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+text-align:center;
+}
+
+input,button{
+padding:10px;
+margin:5px;
+background:black;
+color:#00ff00;
+border:1px solid #00ff00;
+}
+
+button:hover{
+background:#00ff00;
+color:black;
+cursor:pointer;
+}
+
+#lockScreen{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
+color:red;
+text-align:center;
+padding-top:30%;
+font-size:20px;
+}
+
+.glitch{
+animation:glitch 0.15s infinite;
+}
+
+@keyframes glitch{
+0%{background:black;}
+50%{background:red;}
+100%{background:black;}
+}
+
+#main{
+display:none;
+width:100%;
+height:100vh;
+position:relative;
+}
+
+canvas{
+position:absolute;
+top:0;
+left:0;
+}
+
+#terminal{
+position:absolute;
+bottom:0;
+width:100%;
+height:45%;
+background:black;
+border-top:1px solid #00ff00;
+overflow:auto;
+padding:10px;
+outline:none;
+white-space:pre-wrap;
+}
+</style>
+</head>
+
+<body>
+
+<div id="flash"></div>
+
+<div id="login">
+<h2>BUAT AKUN MU BROO</h2>
+<input type="text" id="user" placeholder="Username"><br>
+<input type="password" id="pass" placeholder="Password"><br>
+<button onclick="login()">ENTER</button>
+</div>
+
+<div id="lockScreen">
+⚠ HP ANDA KAMI KUNCI😈👿⚠<br><br>
+TRACKING IP...<br>
+192.168.0.<span id="fakeip"></span><br><br>
+COUNTDOWN: <span id="countdown">10</span><br><br>
+<button id="retryBtn" style="display:none;" onclick="resetLogin()">COBA LAGI</button>
+</div>
+
+<div id="main">
+<canvas id="matrix"></canvas>
+<div id="terminal" contenteditable="true"></div>
+</div>
+
+<script>
+let locked=false;
+
+function flashScreen(times){
+let flash=document.getElementById("flash");
+let count=0;
+let interval=setInterval(()=>{
+flash.style.opacity="1";
+setTimeout(()=>{flash.style.opacity="0";},100);
+count++;
+if(count>=times){
+clearInterval(interval);
+}
+},200);
+}
+
+function login(){
+let u=document.getElementById("user").value;
+let p=document.getElementById("pass").value;
+
+if(u==="fizz" && p==="fizz"){
+startBoot();
+}else{
+startLock();
+}
+}
+
+function startLock(){
+locked=true;
+document.getElementById("login").style.display="none";
+let lock=document.getElementById("lockScreen");
+lock.style.display="block";
+lock.classList.add("glitch");
+
+flashScreen(10);
+
+document.getElementById("fakeip").innerText=
+Math.floor(Math.random()*255);
+
+let time=10;
+let display=document.getElementById("countdown");
+let retry=document.getElementById("retryBtn");
+
+display.innerText=time;
+retry.style.display="none";
+
+let timer=setInterval(function(){
+time--;
+display.innerText=time;
+if(time<=0){
+clearInterval(timer);
+locked=false;
+lock.classList.remove("glitch");
+retry.style.display="inline-block";
+}
+},1000);
+
+history.pushState(null,null,location.href);
+window.onpopstate=function(){
+if(locked){
+history.pushState(null,null,location.href);
+}
+};
+}
+
+function resetLogin(){
+location.reload();
+}
+
+function startBoot(){
+document.getElementById("login").style.display="none";
+document.getElementById("main").style.display="block";
+
+let term=document.getElementById("terminal");
+
+let bootText=[
+"Booting Kali Linux 2026...",
+"Loading kernel modules...",
+"Initializing network interface...",
+"Mounting root filesystem...",
+"Starting security services...",
+"Granting root privileges...",
+"System ready.",
+"",
+"Type 'mau hack apa bree' to see commands.",
+"",
+"masukan kata: "
+];
+
+let i=0;
+function typeBoot(){
+if(i<bootText.length){
+term.innerHTML+=bootText[i]+"\n";
+term.scrollTop=term.scrollHeight;
+i++;
+setTimeout(typeBoot,400);
+}else{
+enableCommands();
+}
+}
+typeBoot();
+startMatrix();
+}
+
+function startMatrix(){
+let canvas=document.getElementById("matrix");
+let ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+let letters="01HACKEREXTREME".split("");
+let fontSize=14;
+let columns=canvas.width/fontSize;
+let drops=[];
+
+for(let x=0;x<columns;x++)
+drops[x]=1;
+
+function draw(){
+ctx.fillStyle="rgba(0,0,0,0.05)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.fillStyle="#0F0";
+ctx.font=fontSize+"px monospace";
+
+for(let i=0;i<drops.length;i++){
+let text=letters[Math.floor(Math.random()*letters.length)];
+ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+if(drops[i]*fontSize>canvas.height && Math.random()>0.975)
+drops[i]=0;
+drops[i]++;
+}
+}
+setInterval(draw,33);
+}
+
+function enableCommands(){
+let term=document.getElementById("terminal");
+term.addEventListener("keydown",function(e){
+if(e.key==="Enter"){
+e.preventDefault();
+let lines=term.innerText.split("\n");
+let cmd=lines[lines.length-1].replace("root@extreme:~$ ","").trim();
+runCommand(cmd);
+}
+});
+}
+
+function runCommand(cmd){
+let term=document.getElementById("terminal");
+
+if(cmd==="gas bree mw heck apa"){
+term.innerHTML+="Available commands: help, ls, whoami, hack, clear\n\nroot@extreme:~$ ";
+}
+else if(cmd==="ls"){
+term.innerHTML+="secret.txt  passwords.db  exploit.sh\n\nroot@extreme:~$ ";
+}
+else if(cmd==="whoami"){
+term.innerHTML+="root\n\nroot@extreme:~$ ";
+}
+else if(cmd==="gas"){
+startGaaProgress();
+}
+else if(cmd==="hack"){
+startHackProgress();
+}
+else if(cmd==="clear"){
+term.innerHTML="masukan teks ";
+}
+else{
+term.innerHTML+="Command not";
+}
+term.scrollTop=term.scrollHeight;
+}
+
+function startHackProgress(){
+let term=document.getElementById("terminal");
+let percent=0;
+term.innerHTML+="HACKING SYSTEM...\n";
+
+let interval=setInterval(()=>{
+percent++;
+term.innerHTML+="Progress: "+percent+"%\n";
+term.scrollTop=term.scrollHeight;
+
+if(percent>=100){
+clearInterval(interval);
+flashScreen(20);
+
+term.innerHTML+="\n██████████████████████████\n";
+term.innerHTML+="ANDA BERHASIL MERENTASS DATA INII😈👿 \n";
+term.innerHTML+="██████████████████████████\n\n";
+term.innerHTML+="root@extreme:~$ ";
+term.scrollTop=term.scrollHeight;
+}
+},40);
+}
+</script>
+
+</body>
+</html>
